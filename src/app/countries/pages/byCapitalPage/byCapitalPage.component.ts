@@ -1,32 +1,36 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { SharedModule } from '../../../shared/shared.module';
 import { CountriesService } from '../../services/countries.service';
-import { Country } from '../../interfaces/country';
+import { Country } from '../../interfaces/country.interface';
 import { CountryTableComponent } from '../../components/countryTable/countryTable.component';
 
 @Component({
   selector: 'app-by-capital-page',
   standalone: true,
-  imports: [
-    CommonModule,
-    SharedModule,
-    CountryTableComponent
-  ],
+  imports: [CommonModule, SharedModule, CountryTableComponent],
   templateUrl: './byCapitalPage.component.html',
   styleUrl: './byCapitalPage.component.css',
-  changeDetection: ChangeDetectionStrategy.Default
+  changeDetection: ChangeDetectionStrategy.Default,
 })
-export class ByCapitalPageComponent {
+export class ByCapitalPageComponent implements OnInit {
+  public countries: Country[] = [];
+  public isLoading: boolean = false;
+  public initialValue: string = '';
 
-  public countries: Country[] = []
+  constructor(private countryService: CountriesService) {}
 
-  constructor(private countryService: CountriesService){}
+  ngOnInit(): void {
+    this.countries = this.countryService.cacheStore.byCapital.countries;
+    this.initialValue = this.countryService.cacheStore.byCapital.term;
+  }
 
-  searchByCapital(term: string): void{
-    this.countryService.searchCapital(term)
-    .subscribe(countriesApi =>{
-      this.countries = countriesApi
-    })
-    }
+  searchByCapital(term: string): void {
+    this.isLoading = true;
+
+    this.countryService.searchCapital(term).subscribe((countriesApi) => {
+      this.countries = countriesApi;
+      this.isLoading = false;
+    });
+  }
 }
